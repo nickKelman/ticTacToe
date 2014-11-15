@@ -1,0 +1,24 @@
+<html ng-app="ticTacToe">
+
+	<head>
+		<link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css">
+		<script src="./bower_components/angular/angular.js"></script>
+		<script src="./bower_components/jquery/dist/jquery.js"></script>
+		<script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+	</head>
+
+	<body>
+		<div ng-controller="boardCtrl">
+			<div ng-controller="rowCtrl" ng-repeat="row in rows">
+				<button class="btn btn-primary" ng-click='handleMove(row, column)' ng-repeat="column in columns">
+					[ {{board[row][column]}} ]
+			    </button>
+			</div>
+		</div>
+
+
+
+
+		<script src="src/ticTacToe.js"></script>
+	</body>
+</html>
