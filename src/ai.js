@@ -81,7 +81,7 @@ app.service('aiService', function(SQUARE_MARKERS) {
 					var tmpBoard = $.extend(true, {}, board);
 					tmpBoard[rowIndex][columnIndex] = AIMarker;
 					var winMove = getWinMove(tmpBoard, AIMarker);
-					if(winMove && (winMove.waysToWin > 1)) {
+					if(winMove && (winMove.waysToWin > 1) && (!forkMove || (forkMove.row === 1 || forkMove.column === 1))) {
 						forkMove = {
 							row: rowIndex,
 							column: columnIndex
