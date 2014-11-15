@@ -8,6 +8,7 @@ app.constant('SQUARE_MARKERS', {
 
 app.controller('boardCtrl', function($scope, SQUARE_MARKERS) {
 	$scope.state = {
+		winningPlayer: undefined,
 		playerOneTurn: true
 	};
 	$scope.rows = [0, 1, 2]
@@ -21,18 +22,16 @@ app.controller('boardCtrl', function($scope, SQUARE_MARKERS) {
 
 app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
 
-	var isHorizontalWin = function() {
-		var horizontalWin = false;
+	var checkHorizontalWin = function() {
 		_.each($scope.board, function (row) {
 			if(_.unique(row).length === 1 && row[0] !== SQUARE_MARKERS.EMPTY) {
-				horizontalWin = true;
+				$scope.state.winningPlayer = row[0];
 				return;
 			}
 		});
-		return horizontalWin;
 	};
 
-	var isVerticalWin = function() {
+	var checkVerticalWin = function() {
 		var columnState = [
 			{
 				lastElement: undefined,
@@ -67,17 +66,40 @@ app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
 				}
 			})
 		});
-		return _.any(_.pluck(columnState, 'couldBeWin'));
+		_.each(columnState, function (colState, index) {
+			if(colState.couldBeWin) {
+				$scope.state.winningPlayer = $scope.board[0][index];
+			}
+		});
 	};
 
-	var isDiagonalWin = function () {
+	var checkTopRightDiagonalWin = function () {
+		var rightDiagonal = _.map($scope.board, function (row, index) {
+			return row[$scope.columns.length - 1 - index];
+		});
+		if(_.unique(rightDiagonal).length === 1 && rightDiagonal[0] !== SQUARE_MARKERS.EMPTY) {
+			$scope.state.winningPlayer = rightDiagonal[0];
+		}
+	};
 
+	var checkTopLeftDiagonalWin = function () {
+		var leftDiagonal = _.map($scope.board, function (row, index) {
+			return row[index];
+		});
+		if(_.unique(leftDiagonal).length === 1 && leftDiagonal[0] !== SQUARE_MARKERS.EMPTY) {
+			$scope.state.winningPlayer = leftDiagonal[0];
+		}
+	};
+
+	var checkDiagonalWin = function () {
+		return checkTopLeftDiagonalWin() || checkTopRightDiagonalWin();
 	};
 
 	var checkWin = function () {
-		if(isHorizontalWin() || isVerticalWin()) {
-			console.log('Win');
-		}
+		checkHorizontalWin();
+		checkVerticalWin();
+		checkDiagonalWin();
+		console.log($scope.state.winningPlayer);
 	};
 
 	$scope.handleMove = function(rowIndex, columnIndex) {
