@@ -6,12 +6,140 @@ app.constant('SQUARE_MARKERS', {
 	PLAYER_2: 'O'
 });
 
-app.service('AI', function() {
-	this.determineNextMove = function (board) {
-		return {
-			row: 1,
-			column: 1
+app.service('AI', function(SQUARE_MARKERS) {
+	var getWinMove = function(board, AIMarker) {
+		var winMove;
+		var hasTwoAIoneEmpty = function (set, isRow, index) {
+			var emptySpot = set.indexOf(SQUARE_MARKERS.EMPTY);
+			if(set.indexOf(AIMarker) !== set.lastIndexOf(AIMarker) &&
+				emptySpot !== -1) {
+				if(isRow) {
+					winMove = {
+						row: index,
+						column: emptySpot,
+						waysToWin: winMove ? ++winMove.waysToWin : 1
+					}
+				} else {
+					winMove = {
+						row: emptySpot,
+						column: index,
+						waysToWin: winMove ? ++winMove.waysToWin : 1
+					}
+				}
+			}
 		}
+		if(board[1][1] === AIMarker) {
+			_.each(board, function (row, rowIndex) {
+				_.each(row, function (cell, columnIndex) {
+					/**
+					var oppositeSpace = {
+						row: 2 - row,
+						column: 2 - column
+					};
+					**/
+					if(cell === SQUARE_MARKERS.EMPTY && board[2 - rowIndex][2 - columnIndex] === AIMarker) {
+						winMove = {
+							row: rowIndex,
+							column: columnIndex,
+							waysToWin: winMove ? ++winMove.waysToWin : 1
+						}
+						return;
+					}
+				})
+			})
+		} 
+		var firstColumn = _.map(board, function (row) {
+			return row[0];
+		});
+		var lastColumn = _.map(board, function (row) {
+			return row[2];
+		});
+		hasTwoAIoneEmpty(board[0], true, 0);
+		hasTwoAIoneEmpty(board[2], true, 2);
+		hasTwoAIoneEmpty(firstColumn, false, 0);
+		hasTwoAIoneEmpty(lastColumn, false, 2);
+		return winMove;
+	};
+
+	var getBlockMove = function(board, AIMarker) {
+		if(AIMarker === SQUARE_MARKERS.PLAYER_1) {
+			return getWinMove(board, SQUARE_MARKERS.PLAYER_2);
+		}
+		else {
+			return getWinMove(board, SQUARE_MARKERS.PLAYER_1);
+		}
+	};
+
+	var getForkMove = function (board, AIMarker) {
+		var forkMove;
+		_.each(board, function (row, rowIndex){
+			_.each(row, function (cell, columnIndex) {
+				if(board[rowIndex][columnIndex] === SQUARE_MARKERS.EMPTY) {
+					var tmpBoard = $.extend(true, {}, board);
+					tmpBoard[rowIndex][columnIndex] = AIMarker;
+					var winMove = getWinMove(tmpBoard, AIMarker);
+					if(winMove && (winMove.waysToWin > 1)) {
+						forkMove = {
+							row: rowIndex,
+							column: columnIndex
+						}
+					}
+				}
+			});
+		});
+		return forkMove;
+	};
+
+	var getBlockForkMove = function (board, AIMarker) {
+		if(AIMarker === SQUARE_MARKERS.PLAYER_1) {
+			return getForkMove(board, SQUARE_MARKERS.PLAYER_2);
+		}
+		else {
+			return getForkMove(board, SQUARE_MARKERS.PLAYER_1);
+		}
+	};
+
+	var getCenterMove = function (board, AIMarker) {
+		if(board[1][1] === SQUARE_MARKERS.EMPTY) {
+			return {
+				row: 1,
+				column: 1
+			}
+		}
+	};
+
+	var getOppositeCornerMove = function (board, AIMarker) {
+
+	};
+
+	var getEmptyCornerMove = function (board, AIMarker) {
+
+	};
+
+	/**
+		Whatever is left
+	**/
+	var getEmptySideMove = function (board, AIMarker) {
+		var move;
+		_.each(board, function (row, rowIndex) {
+			_.each(row, function (cell, columnIndex) {
+				if(cell === SQUARE_MARKERS.EMPTY) {
+					move = {
+						row: rowIndex,
+						column: columnIndex
+					}
+				}
+			});
+		});
+		return move;
+	};
+
+	this.determineNextMove = function (board, AIMarker) {
+		return getWinMove(board, AIMarker) || getBlockMove(board, AIMarker) || 
+		getForkMove(board, AIMarker) || getBlockForkMove(board, AIMarker) || 
+		getCenterMove(board, AIMarker) || getOppositeCornerMove(board, AIMarker) ||
+		getEmptyCornerMove(board, AIMarker) || getEmptySideMove(board, AIMarker) || 
+		getRandomLegalMove(board);
 	};
 });
 
@@ -163,13 +291,17 @@ app.controller('rowCtrl', function($scope, SQUARE_MARKERS, AI) {
 		return $scope.state.playerOneTurn ? SQUARE_MARKERS.PLAYER_1 : SQUARE_MARKERS.PLAYER_2;
 	};
 
+	var isLegalMove = function (row, col) {
+		return $scope.board[row][col] === SQUARE_MARKERS.EMPTY;
+	};
+
 	$scope.handleMove = function(rowIndex, columnIndex) {
-		if(!$scope.gameIsOver()) {
+		if(!$scope.gameIsOver() && isLegalMove(rowIndex, columnIndex)) {
 			$scope.board[rowIndex][columnIndex] = getCurrentMarker();
 			$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
 			checkWin();
-			if($scope.state.selectedMode === $scope.gameModes[1]) {
-				var nextMove = AI.determineNextMove($scope.board);
+			if(!$scope.gameIsOver() && $scope.state.selectedMode === $scope.gameModes[1]) {
+				var nextMove = AI.determineNextMove($scope.board, getCurrentMarker());
 				$scope.board[nextMove.row][nextMove.column] = getCurrentMarker();
 				$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
 				checkWin();
