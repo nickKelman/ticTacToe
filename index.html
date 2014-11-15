@@ -12,7 +12,7 @@
 
 	<body ng-controller="gameCtrl">
 		<div ng-controller="dropdownCtrl">
-			<div class="btn-group" dropdown is-open="status.isopen">
+			<div class="btn-group" dropdown>
 				<button type="button" class="btn btn-primary dropdown-toggle">
 					{{state.selectedMode}} <span class="caret"></span>
 				</button>
@@ -37,16 +37,16 @@
 			<div ng-class="{'bold': !state.playerOneTurn}">
 				Player 2: {{playerTwoMarker}}
 			</div>
-			<button class="btn btn-primary" ng-click='resetGame()'>
+			<button class="btn btn-primary" ng-click="resetGame()">
 				Reset Game
 		    </button>
 			</br>
 			</br>
-			<div ng-show='gameIsOver()'>
-				<div ng-show='state.winningPlayer'>
+			<div class="end-notification" ng-show="gameIsOver()">
+				<div ng-show="state.winningPlayer">
 					{{state.winningPlayer}} Wins!
 				</div>
-				<div ng-hide='state.winningPlayer'>
+				<div ng-hide="state.winningPlayer">
 					Draw!
 				</div>
 			</div>

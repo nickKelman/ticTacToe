@@ -1,4 +1,18 @@
-app.service('AI', function(SQUARE_MARKERS) {
+/**
+	This service makes decisions for the computer in human
+	vs computer matchups. It is designed to never allow the human
+	to win.
+**/
+app.service('aiService', function(SQUARE_MARKERS) {
+	var getOppositeAIMarker = function (AIMarker) {
+		return AIMarker === SQUARE_MARKERS.PLAYER_1 ? SQUARE_MARKERS.PLAYER_2 : SQUARE_MARKERS.PLAYER_1;
+	};
+
+	/**
+		Based on the input board and marker, this function determines
+		a move to win the game, and how many possible moves exist
+		to win the game.
+	**/
 	var getWinMove = function(board, AIMarker) {
 		var winMove;
 		var hasTwoAIoneEmpty = function (set, isRow, index) {
@@ -47,15 +61,18 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return winMove;
 	};
 
+	/**
+		If the opponent has a move (or more) to win the game, this will return
+		a space to block one of the winning moves.
+	**/
 	var getBlockMove = function(board, AIMarker) {
-		if(AIMarker === SQUARE_MARKERS.PLAYER_1) {
-			return getWinMove(board, SQUARE_MARKERS.PLAYER_2);
-		}
-		else {
-			return getWinMove(board, SQUARE_MARKERS.PLAYER_1);
-		}
+		return getWinMove(board, getOppositeAIMarker(AIMarker));
 	};
 
+	/**
+		If the marker has a chance to set up two or more win moves at once,
+		this function will return the space where is possible.
+	**/
 	var getForkMove = function (board, AIMarker) {
 		var forkMove;
 		_.each(board, function (row, rowIndex){
@@ -76,6 +93,9 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return forkMove;
 	};
 
+	/**
+		Returns the number of unmarked cells on the board.
+	**/
 	var getNumberOfBlankCells = function (board) {
 		var counter = 0;
 		_.each(board, function (row, rowIndex){
@@ -88,6 +108,11 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return counter;
 	};
 
+	/**
+		There is a dangerous situation where the user chooses to corners opposite
+		eachother, adn the CPU chooses the middle tile. This function tells us if
+		the board is in that dangerous situation.
+	**/
 	var blockingForkWillResultInTrap = function (board, AIMarker) {
 		if(board[1][1] === AIMarker && getNumberOfBlankCells(board) === 6) {
 			if(board[0][0] === board[2][2] && board[0][0] !== SQUARE_MARKERS.EMPTY) {
@@ -99,10 +124,11 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return false;
 	};
 
-	var getOppositeAIMarker = function (AIMarker) {
-		return AIMarker === SQUARE_MARKERS.PLAYER_1 ? SQUARE_MARKERS.PLAYER_2 : SQUARE_MARKERS.PLAYER_1;
-	};
-
+	/**
+		If we are in the dangerous situation described above, we choose an empty
+		side-space. Otherwise, we return a spot that the opponent could use as a
+		fork.
+	**/
 	var getBlockForkMove = function (board, AIMarker) {
 		if(blockingForkWillResultInTrap(board, AIMarker)) {
 			return getEmptySideMove(board, AIMarker);
@@ -110,6 +136,9 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return getForkMove(board, getOppositeAIMarker(AIMarker));
 	};
 
+	/**
+		Returns the center spot if available.
+	**/
 	var getCenterMove = function (board, AIMarker) {
 		if(board[1][1] === SQUARE_MARKERS.EMPTY) {
 			return {
@@ -119,6 +148,11 @@ app.service('AI', function(SQUARE_MARKERS) {
 		}
 	};
 
+	/**
+		If the opponent has a corner with an empty corner opposite it, this function
+		will return the spot opposite it. (If more than one returns the last one encountered 
+		[arbitrary])
+	**/
 	var getOppositeCornerMove = function (board, AIMarker) {
 		var oppMark = getOppositeAIMarker(AIMarker);
 		if(board[0][0] === oppMark && board[2][2] === SQUARE_MARKERS.EMPTY) {
@@ -144,6 +178,9 @@ app.service('AI', function(SQUARE_MARKERS) {
 		}
 	};
 
+	/**
+		Returns an arbitrary empty corner if it exists.
+	**/
 	var getEmptyCornerMove = function (board, AIMarker) {
 		if(board[0][0] === SQUARE_MARKERS.EMPTY) {
 			return {
@@ -169,7 +206,7 @@ app.service('AI', function(SQUARE_MARKERS) {
 	};
 
 	/**
-		Whatever is left
+		Returns an empty side move if it exists
 	**/
 	var getEmptySideMove = function (board, AIMarker) {
 		if(board[0][1] === SQUARE_MARKERS.EMPTY) {
@@ -195,6 +232,10 @@ app.service('AI', function(SQUARE_MARKERS) {
 		}
 	};
 
+	/**
+		Originally used for testing, now used as a failsafe. This function
+		returns a random empty square. This function should never be encountered.
+	**/	
 	var getRandomLegalMove = function (board, AIMarker) {
 		var move;
 		_.each(board, function (row, rowIndex) {
@@ -210,6 +251,12 @@ app.service('AI', function(SQUARE_MARKERS) {
 		return move;
 	};
 
+	/**
+		Determines the optimal move for the computer (in terms of never losing).
+		It follows a desicion tree similar to the one found in the strategy section here:
+			http://en.wikipedia.org/wiki/Tic-tac-toe
+
+	**/
 	this.determineNextMove = function (board, AIMarker) {
 		return getWinMove(board, AIMarker) || getBlockMove(board, AIMarker) || 
 		getForkMove(board, AIMarker) || getBlockForkMove(board, AIMarker) || 
@@ -217,24 +264,4 @@ app.service('AI', function(SQUARE_MARKERS) {
 		getEmptyCornerMove(board, AIMarker) || getEmptySideMove(board, AIMarker) || 
 		getRandomLegalMove(board);
 	};
-});
-
-app.controller('gameCtrl', function($scope) {
-	$scope.gameModes = [
-		'Human vs Human',
-		'Human vs Computer',
-		'Computer vs Human'
-	];
-	$scope.state = {
-		selectedMode: $scope.gameModes[0]
-	}
-});
-
-app.controller('dropdownCtrl', function($scope) {
-	$scope.status = {
-	    isopen: true
-  	};
-  	$scope.setGameMode = function(mode) {
-	    $scope.state.selectedMode = mode;
-  	};
 });

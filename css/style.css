@@ -11,3 +11,9 @@ body {
 	padding-top: 50px;
 	text-align: center
 }
+
+.end-notification {
+	color: green;
+	font-weight: bold;
+	font-size: 24;
+}
