@@ -7,17 +7,52 @@
 		<script src="./bower_components/angular/angular.js"></script>
 		<script src="./bower_components/jquery/dist/jquery.js"></script>
 		<script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="./libs/ui-bootstrap-0.9.0.min.js"></script>
 	</head>
 
 	<body>
+		<div ng-controller="dropdownCtrl">
+			<div class="btn-group" dropdown is-open="status.isopen">
+				<button type="button" class="btn btn-primary dropdown-toggle">
+					Game Type <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					<li><a href="#">Human vs Human</a></li>
+					<li><a href="#">Human vs Computer</a></li>
+					<li><a href="#">Computer vs Human</a></li>
+				</ul>
+		    </div>
+		</div>
+
+		</br>
+
 		<div ng-controller="boardCtrl">
 			<div ng-controller="rowCtrl" ng-repeat="row in rows">
-				<button class="btn btn-primary" ng-click='handleMove(row, column)' ng-repeat="column in columns">
-					[ {{board[row][column]}} ]
+				<button class="board-cell btn btn-primary" ng-click='handleMove(row, column)' ng-repeat="column in columns">
+					{{board[row][column]}}
+			    </button>
+			</div>
+			</br>
+			<div ng-class="{'bold': state.playerOneTurn}">
+				Player 1: {{playerOneMarker}}
+			</div>
+			<div ng-class="{'bold': !state.playerOneTurn}">
+				Player 2: {{playerTwoMarker}}
+			</div>
+			</br>
+			<div ng-show='gameIsOver()'>
+				<div ng-show='state.winningPlayer'>
+					{{state.winningPlayer}} Wins!
+				</div>
+				<div ng-hide='state.winningPlayer'>
+					Draw!
+				</div>
+				</br>
+				<button class="btn btn-primary" ng-click='resetGame()'>
+					Reset Game
 			    </button>
 			</div>
 		</div>
-
 
 
 

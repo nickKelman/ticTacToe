@@ -1,3 +1,13 @@
-.btn {
-	width: 60px
+.board-cell {
+	width: 60px;
+	height: 60px;
+}
+
+.bold {
+	font-weight: bold
+}
+
+body {
+	padding-top: 50px;
+	text-align: center
 }

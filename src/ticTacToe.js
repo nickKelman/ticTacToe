@@ -1,4 +1,4 @@
-var app = angular.module('ticTacToe', []);
+var app = angular.module('ticTacToe', ['ui.bootstrap']);
 
 app.constant('SQUARE_MARKERS', {
 	EMPTY: '',
@@ -6,18 +6,46 @@ app.constant('SQUARE_MARKERS', {
 	PLAYER_2: 'O'
 });
 
+app.controller('dropdownCtrl', function($scope) {
+	$scope.status = {
+	    isopen: true
+  	};
+});
+
 app.controller('boardCtrl', function($scope, SQUARE_MARKERS) {
-	$scope.state = {
-		winningPlayer: undefined,
-		playerOneTurn: true
+	var boardIsFull = function () {
+		boardFull = true;
+		_.each($scope.board, function (row) {
+			_.each(row, function (cell) {
+				if(cell === SQUARE_MARKERS.EMPTY) {
+					boardFull = false;
+				}
+			});
+		});
+		return boardFull;
 	};
+
+	$scope.resetGame = function () {
+		$scope.state = {
+			winningPlayer: undefined,
+			playerOneTurn: true
+		};
+		$scope.board = [
+			[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
+			[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
+			[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
+		];
+	};
+
+	$scope.gameIsOver = function () {
+		return !_.isUndefined($scope.state.winningPlayer) || boardIsFull();
+	};
+
 	$scope.rows = [0, 1, 2]
 	$scope.columns = [0, 1, 2]
-	$scope.board = [
-		[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
-		[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
-		[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
-	]
+	$scope.playerOneMarker = SQUARE_MARKERS.PLAYER_1;
+	$scope.playerTwoMarker = SQUARE_MARKERS.PLAYER_2;
+	$scope.resetGame();
 });
 
 app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
@@ -99,13 +127,13 @@ app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
 		checkHorizontalWin();
 		checkVerticalWin();
 		checkDiagonalWin();
-		console.log($scope.state.winningPlayer);
 	};
 
 	$scope.handleMove = function(rowIndex, columnIndex) {
-
-		$scope.board[rowIndex][columnIndex] = $scope.state.playerOneTurn ? SQUARE_MARKERS.PLAYER_1 : SQUARE_MARKERS.PLAYER_2;
-		$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
-		checkWin();
+		if(!$scope.gameIsOver()) {
+			$scope.board[rowIndex][columnIndex] = $scope.state.playerOneTurn ? SQUARE_MARKERS.PLAYER_1 : SQUARE_MARKERS.PLAYER_2;
+			$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
+			checkWin();
+		}
 	};
 });
