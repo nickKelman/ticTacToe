@@ -10,16 +10,14 @@
 		<script src="./libs/ui-bootstrap-0.9.0.min.js"></script>
 	</head>
 
-	<body>
+	<body ng-controller="gameCtrl">
 		<div ng-controller="dropdownCtrl">
 			<div class="btn-group" dropdown is-open="status.isopen">
 				<button type="button" class="btn btn-primary dropdown-toggle">
-					Game Type <span class="caret"></span>
+					{{state.selectedMode}} <span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu" role="menu">
-					<li><a href="#">Human vs Human</a></li>
-					<li><a href="#">Human vs Computer</a></li>
-					<li><a href="#">Computer vs Human</a></li>
+					<li ng-repeat="mode in gameModes" ng-click="setGameMode(mode)"><a href="#">{{mode}}</a></li>
 				</ul>
 		    </div>
 		</div>
@@ -39,6 +37,10 @@
 			<div ng-class="{'bold': !state.playerOneTurn}">
 				Player 2: {{playerTwoMarker}}
 			</div>
+			<button class="btn btn-primary" ng-click='resetGame()'>
+				Reset Game
+		    </button>
+			</br>
 			</br>
 			<div ng-show='gameIsOver()'>
 				<div ng-show='state.winningPlayer'>
@@ -47,10 +49,6 @@
 				<div ng-hide='state.winningPlayer'>
 					Draw!
 				</div>
-				</br>
-				<button class="btn btn-primary" ng-click='resetGame()'>
-					Reset Game
-			    </button>
 			</div>
 		</div>
 

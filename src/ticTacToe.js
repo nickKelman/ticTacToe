@@ -6,9 +6,32 @@ app.constant('SQUARE_MARKERS', {
 	PLAYER_2: 'O'
 });
 
+app.service('AI', function() {
+	this.determineNextMove = function (board) {
+		return {
+			row: 1,
+			column: 1
+		}
+	};
+});
+
+app.controller('gameCtrl', function($scope) {
+	$scope.gameModes = [
+		'Human vs Human',
+		'Human vs Computer',
+		'Computer vs Human'
+	];
+	$scope.state = {
+		selectedMode: $scope.gameModes[0]
+	}
+});
+
 app.controller('dropdownCtrl', function($scope) {
 	$scope.status = {
 	    isopen: true
+  	};
+  	$scope.setGameMode = function(mode) {
+	    $scope.state.selectedMode = mode;
   	};
 });
 
@@ -25,11 +48,18 @@ app.controller('boardCtrl', function($scope, SQUARE_MARKERS) {
 		return boardFull;
 	};
 
+	$scope.$watch('state.selectedMode', function (newValue, oldValue) {
+		if(newValue !== oldValue) {
+			$scope.resetGame();
+		}
+	});
+
 	$scope.resetGame = function () {
-		$scope.state = {
+		var newGameDefaults = {
 			winningPlayer: undefined,
 			playerOneTurn: true
 		};
+		_.extend($scope.state, newGameDefaults)
 		$scope.board = [
 			[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
 			[SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY, SQUARE_MARKERS.EMPTY],
@@ -48,7 +78,7 @@ app.controller('boardCtrl', function($scope, SQUARE_MARKERS) {
 	$scope.resetGame();
 });
 
-app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
+app.controller('rowCtrl', function($scope, SQUARE_MARKERS, AI) {
 
 	var checkHorizontalWin = function() {
 		_.each($scope.board, function (row) {
@@ -129,11 +159,21 @@ app.controller('rowCtrl', function($scope, SQUARE_MARKERS) {
 		checkDiagonalWin();
 	};
 
+	var getCurrentMarker = function () {
+		return $scope.state.playerOneTurn ? SQUARE_MARKERS.PLAYER_1 : SQUARE_MARKERS.PLAYER_2;
+	};
+
 	$scope.handleMove = function(rowIndex, columnIndex) {
 		if(!$scope.gameIsOver()) {
-			$scope.board[rowIndex][columnIndex] = $scope.state.playerOneTurn ? SQUARE_MARKERS.PLAYER_1 : SQUARE_MARKERS.PLAYER_2;
+			$scope.board[rowIndex][columnIndex] = getCurrentMarker();
 			$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
 			checkWin();
+			if($scope.state.selectedMode === $scope.gameModes[1]) {
+				var nextMove = AI.determineNextMove($scope.board);
+				$scope.board[nextMove.row][nextMove.column] = getCurrentMarker();
+				$scope.state.playerOneTurn = !$scope.state.playerOneTurn;
+				checkWin();
+			}
 		}
 	};
 });
