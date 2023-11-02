@@ -218,7 +218,7 @@ app.controller('rowCtrl', function($scope, SQUARE_MARKERS, aiService, utils) {
 	};
 
 	/**
-		If the is not over and the move is legal, makes the move for the player,
+		If the game is not over and the move is legal, makes the move for the player,
 		changes turn, checks for win, then makes the move for the computer if in the propper
 		mode.
 	**/
