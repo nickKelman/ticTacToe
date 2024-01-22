@@ -2,7 +2,7 @@ var app = angular.module('ticTacToe', ['ui.bootstrap']);
 
 app.constant('SQUARE_MARKERS', {
 	EMPTY: '',
-	PLAYER_1: '<3',
+	PLAYER_1: 'X',
 	PLAYER_2: 'O'
 });
 
