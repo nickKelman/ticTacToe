@@ -196,7 +196,7 @@ app.controller('boardCtrl', function($scope, SQUARE_MARKERS, BOARD, aiService, u
 	};
 
 	/**
-		Checks to see if the board is full or if someone has won the game
+		Checks to see if the board is full or if someone has won the game.
 	**/
 	$scope.gameIsOver = function () {
 		return !_.isUndefined($scope.state.winningPlayer) || boardIsFull();
