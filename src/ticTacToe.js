@@ -47,7 +47,7 @@ app.service('utils', function (SQUARE_MARKERS, BOARD) {
 		];
 
 		/**
-			Determines whether a win is still plausible for the passed in column
+			Determine whether a win is still plausible for the passed in column
 			and current Row. The currentRow gets called from top to bottom.
 		**/
 		var verticalWinNotPossible = function (column, currentRow) {
